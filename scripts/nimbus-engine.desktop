@@ -1,0 +1,17 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nimbus Engine
+Name[en_US]=Nimbus Engine
+Comment=Advanced 3D Game Engine with Unity-style editor
+Comment[en_US]=Advanced 3D Game Engine with Unity-style editor
+GenericName=Game Engine
+GenericName[en_US]=Game Engine
+Keywords=game;engine;3d;development;editor
+Keywords[en_US]=game;engine;3d;development;editor
+Exec=nimbus-engine %F
+Icon=nimbus-engine
+Terminal=false
+StartupNotify=true
+Categories=Development;Graphics;Game;
+MimeType=application/x-nimbus-scene;application/x-nimbus-project;

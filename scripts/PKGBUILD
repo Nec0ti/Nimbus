@@ -1,0 +1,91 @@
+# Maintainer: Nimbus Engine Team <support@nimbus-engine.com>
+# Contributor: Your Name <your.email@example.com>
+
+pkgname=nimbus-engine
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Advanced 3D Game Engine with Unity-style editor"
+arch=('x86_64')
+url="https://github.com/nimbus-engine/nimbus-engine"
+license=('MIT')
+depends=(
+    'glfw'
+    'glm'
+    'bullet'
+    'openal'
+    'vulkan-icd-loader'
+    'vulkan-validation-layers'
+    'spdlog'
+    'imgui'
+)
+makedepends=(
+    'cmake'
+    'ninja'
+    'gcc'
+    'vulkan-headers'
+    'vulkan-tools'
+)
+optdepends=(
+    'vulkan-driver: For Vulkan rendering support'
+    'mesa: For OpenGL rendering support'
+)
+provides=('nimbus-engine')
+conflicts=('nimbus-engine-git')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+    cd "$srcdir/$pkgname-$pkgver"
+    
+    # Create build directory
+    mkdir -p build
+}
+
+build() {
+    cd "$srcdir/$pkgname-$pkgver/build"
+    
+    cmake .. \
+        -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DNIMBUS_BUILD_EDITOR=ON \
+        -DNIMBUS_BUILD_EXAMPLES=ON \
+        -DNIMBUS_BUILD_TESTS=OFF \
+        -DNIMBUS_VULKAN_ENABLED=ON \
+        -DNIMBUS_OPENGL_ENABLED=ON \
+        -DNIMBUS_DIRECTX_ENABLED=OFF \
+        -DNIMBUS_BUILD_SHARED=OFF
+    
+    ninja
+}
+
+check() {
+    cd "$srcdir/$pkgname-$pkgver/build"
+    # ninja test
+}
+
+package() {
+    cd "$srcdir/$pkgname-$pkgver/build"
+    
+    DESTDIR="$pkgdir" ninja install
+    
+    # Install license
+    install -Dm644 "$srcdir/$pkgname-$pkgver/LICENSE" \
+        "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    
+    # Install desktop file
+    install -Dm644 "$srcdir/$pkgname-$pkgver/scripts/nimbus-engine.desktop" \
+        "$pkgdir/usr/share/applications/nimbus-engine.desktop"
+    
+    # Install icon
+    install -Dm644 "$srcdir/$pkgname-$pkgver/assets/icon.png" \
+        "$pkgdir/usr/share/pixmaps/nimbus-engine.png"
+    
+    # Install documentation
+    install -dm755 "$pkgdir/usr/share/doc/$pkgname"
+    cp -r "$srcdir/$pkgname-$pkgver/docs/"* "$pkgdir/usr/share/doc/$pkgname/" 2>/dev/null || true
+    
+    # Install examples
+    install -dm755 "$pkgdir/usr/share/$pkgname/examples"
+    cp -r "$srcdir/$pkgname-$pkgver/examples/"* "$pkgdir/usr/share/$pkgname/examples/" 2>/dev/null || true
+}
