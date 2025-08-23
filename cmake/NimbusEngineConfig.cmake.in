@@ -1,0 +1,25 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find dependencies
+find_dependency(OpenGL REQUIRED)
+find_dependency(glfw3 REQUIRED)
+find_dependency(imgui REQUIRED)
+find_dependency(glm REQUIRED)
+find_dependency(Bullet REQUIRED)
+find_dependency(OpenAL REQUIRED)
+
+if(NIMBUS_VULKAN_ENABLED)
+    find_dependency(Vulkan REQUIRED)
+endif()
+
+# Include the targets file
+include("${CMAKE_CURRENT_LIST_DIR}/NimbusEngineTargets.cmake")
+
+# Set variables
+set(NIMBUS_ENGINE_VERSION "@PROJECT_VERSION@")
+set(NIMBUS_ENGINE_INCLUDE_DIRS "@PACKAGE_INCLUDE_DIR@")
+
+# Check if all required components are available
+set(NIMBUS_ENGINE_FOUND TRUE)
