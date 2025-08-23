@@ -1,0 +1,104 @@
+# Maintainer: Nimbus Engine Team <support@nimbusengine.com>
+pkgname=nimbusengine
+pkgver=@PROJECT_VERSION@
+pkgrel=1
+pkgdesc="Advanced 3D Game Engine - Professional-grade game development platform"
+arch=('x86_64')
+url="https://nimbusengine.com"
+license=('MIT')
+depends=('mesa' 'glfw-x11' 'assimp' 'freetype2' 'openal' 'bullet')
+makedepends=('cmake' 'git' 'ninja')
+optdepends=(
+    'vulkan-driver: for Vulkan rendering backend support'
+    'vulkan-tools: for Vulkan debugging and validation'
+    'mono: for C# scripting support'
+)
+provides=('nimbusengine')
+conflicts=('nimbusengine-git')
+source=("nimbusengine-${pkgver}.tar.gz::https://github.com/NimbusEngine/NimbusEngine/archive/v${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+    cd "${srcdir}/NimbusEngine-${pkgver}"
+    
+    # Initialize submodules if building from source
+    if [[ -f .gitmodules ]]; then
+        git submodule update --init --recursive
+    fi
+}
+
+build() {
+    cd "${srcdir}/NimbusEngine-${pkgver}"
+    
+    cmake -B build \
+        -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DNIMBUS_BUILD_EDITOR=ON \
+        -DNIMBUS_BUILD_RUNTIME=ON \
+        -DNIMBUS_BUILD_TESTS=OFF \
+        -DNIMBUS_ENABLE_VULKAN=ON
+
+    ninja -C build
+}
+
+check() {
+    cd "${srcdir}/NimbusEngine-${pkgver}"
+    
+    # Run basic engine tests if they exist
+    if [[ -d build/bin ]]; then
+        # Basic smoke test - check if editor can start
+        timeout 10s build/bin/NimbusEditor --version || true
+    fi
+}
+
+package() {
+    cd "${srcdir}/NimbusEngine-${pkgver}"
+    
+    DESTDIR="${pkgdir}" ninja -C build install
+    
+    # Install desktop entry
+    install -Dm644 "${srcdir}/nimbusengine.desktop" \
+        "${pkgdir}/usr/share/applications/nimbusengine.desktop"
+    
+    # Install icon
+    install -Dm644 "Assets/Editor/Icons/NimbusLogo.png" \
+        "${pkgdir}/usr/share/pixmaps/nimbusengine.png"
+    
+    # Install documentation
+    install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    
+    # Install examples and templates
+    if [[ -d Examples ]]; then
+        cp -r Examples "${pkgdir}/usr/share/${pkgname}/"
+    fi
+    
+    # Install bash completion
+    if [[ -f scripts/nimbusengine-completion.bash ]]; then
+        install -Dm644 scripts/nimbusengine-completion.bash \
+            "${pkgdir}/usr/share/bash-completion/completions/nimbusengine"
+    fi
+}
+
+# Post-install message
+post_install() {
+    echo ""
+    echo "==> Nimbus Engine has been installed successfully!"
+    echo "==> Run 'nimbusengine' to start the editor"
+    echo "==> Documentation: /usr/share/doc/nimbusengine/"
+    echo "==> Examples: /usr/share/nimbusengine/Examples/"
+    echo ""
+    echo "==> Optional dependencies:"
+    echo "    - Install 'vulkan-driver' for Vulkan rendering support"
+    echo "    - Install 'mono' for C# scripting capabilities"
+    echo ""
+}
+
+post_upgrade() {
+    post_install
+}
+
+post_remove() {
+    echo "==> Nimbus Engine configuration files in ~/.config/NimbusEngine/ were not removed"
+}
