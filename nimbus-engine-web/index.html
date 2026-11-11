@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nimbus Engine - 3D Game Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #2b2b2b;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Menu Bar */
+        .menu-bar {
+            background: #1e1e1e;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #383838;
+            font-size: 13px;
+        }
+
+        .menu-item {
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #404040;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: #2b2b2b;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            border-bottom: 1px solid #383838;
+            gap: 8px;
+        }
+
+        .tool-button {
+            width: 28px;
+            height: 28px;
+            background: #404040;
+            border: 1px solid #555555;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: #ffffff;
+            font-size: 12px;
+        }
+
+        .tool-button:hover {
+            background: #505050;
+        }
+
+        .tool-button.active {
+            background: #0e84d1;
+            border-color: #0e84d1;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 64px);
+        }
+
+        /* Panels */
+        .panel {
+            background: #2b2b2b;
+            border: 1px solid #383838;
+            margin: 2px;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: #1e1e1e;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid #383838;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 8px;
+            overflow: auto;
+        }
+
+        /* Hierarchy Panel */
+        .hierarchy {
+            width: 250px;
+            min-width: 200px;
+        }
+
+        .hierarchy-item {
+            padding: 4px 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            border-radius: 3px;
+            margin: 1px 0;
+        }
+
+        .hierarchy-item:hover {
+            background: #404040;
+        }
+
+        .hierarchy-item.selected {
+            background: #0e84d1;
+        }
+
+        .hierarchy-icon {
+            width: 16px;
+            height: 16px;
+            background: #666666;
+            border-radius: 2px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Scene View */
+        .scene-view {
+            flex: 2;
+            position: relative;
+        }
+
+        #scene-canvas {
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+        }
+
+        .scene-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px;
+            border-radius: 4px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .scene-control-btn {
+            padding: 4px 8px;
+            background: #404040;
+            border: none;
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .scene-control-btn:hover {
+            background: #505050;
+        }
+
+        .scene-control-btn.active {
+            background: #0e84d1;
+        }
+
+        /* Inspector Panel */
+        .inspector {
+            width: 300px;
+            min-width: 250px;
+        }
+
+        .component {
+            background: #333333;
+            margin: 8px 0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .component-header {
+            background: #2a2a2a;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid #444444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .component-content {
+            padding: 12px;
+        }
+
+        .property {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .property-label {
+            font-size: 12px;
+            min-width: 80px;
+            color: #cccccc;
+        }
+
+        .property-input {
+            flex: 1;
+            background: #404040;
+            border: 1px solid #555555;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* Project Window */
+        .project-window {
+            height: 200px;
+            border-top: 1px solid #383838;
+        }
+
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            padding: 8px;
+        }
+
+        .asset-item {
+            background: #404040;
+            border-radius: 4px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .asset-item:hover {
+            background: #505050;
+        }
+
+        .asset-icon {
+            width: 48px;
+            height: 48px;
+            background: #666666;
+            border-radius: 4px;
+            margin: 0 auto 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .asset-name {
+            font-size: 11px;
+            color: #cccccc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1e1e1e;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            border-top: 1px solid #383838;
+            font-size: 11px;
+            color: #aaaaaa;
+        }
+
+        /* Splitters */
+        .horizontal-splitter {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .vertical-splitter {
+            display: flex;
+        }
+
+        /* Scene Statistics */
+        .scene-stats {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #aaaaaa;
+        }
+
+        /* Play Controls */
+        .play-controls {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .play-button {
+            width: 32px;
+            height: 28px;
+            background: #404040;
+            border: 1px solid #555555;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .play-button:hover {
+            background: #505050;
+        }
+
+        .play-button.playing {
+            background: #0e84d1;
+            border-color: #0e84d1;
+        }
+
+        /* Gizmo */
+        .gizmo {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            border: 2px solid #555;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gizmo-axis {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .gizmo-x { color: #ff4444; top: 50%; right: 5px; }
+        .gizmo-y { color: #44ff44; top: 5px; left: 50%; }
+        .gizmo-z { color: #4444ff; bottom: 5px; left: 50%; }
+    </style>
+</head>
+<body>
+    <!-- Menu Bar -->
+    <div class="menu-bar">
+        <div class="menu-item">File</div>
+        <div class="menu-item">Edit</div>
+        <div class="menu-item">Assets</div>
+        <div class="menu-item">GameObject</div>
+        <div class="menu-item">Component</div>
+        <div class="menu-item">Window</div>
+        <div class="menu-item">Help</div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="play-controls">
+            <div class="play-button" id="playBtn" onclick="togglePlay()">▶</div>
+            <div class="play-button" onclick="pauseGame()">⏸</div>
+            <div class="play-button" onclick="stepFrame()">⏭</div>
+        </div>
+        <div style="width: 1px; height: 20px; background: #555; margin: 0 8px;"></div>
+        <div class="tool-button active" onclick="setTool('move')" title="Move Tool">🔄</div>
+        <div class="tool-button" onclick="setTool('rotate')" title="Rotate Tool">↻</div>
+        <div class="tool-button" onclick="setTool('scale')" title="Scale Tool">⤢</div>
+        <div class="tool-button" onclick="setTool('rect')" title="Rect Tool">⬚</div>
+        <div style="width: 1px; height: 20px; background: #555; margin: 0 8px;"></div>
+        <div class="tool-button" onclick="togglePivot()" title="Pivot Mode">⊙</div>
+        <div class="tool-button" onclick="toggleSnap()" title="Snap">⌗</div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Hierarchy Panel -->
+        <div class="panel hierarchy">
+            <div class="panel-header">
+                <span>Hierarchy</span>
+                <span style="cursor: pointer;">⚙</span>
+            </div>
+            <div class="panel-content" id="hierarchyContent">
+                <!-- Hierarchy items will be populated here -->
+            </div>
+        </div>
+
+        <!-- Scene View and Game View -->
+        <div class="horizontal-splitter" style="flex: 2;">
+            <div class="panel scene-view">
+                <div class="panel-header">
+                    <span>Scene</span>
+                    <div style="display: flex; gap: 8px; font-size: 11px;">
+                        <span>Gizmos</span>
+                        <span style="cursor: pointer;">⚙</span>
+                    </div>
+                </div>
+                <div class="panel-content" style="padding: 0; position: relative;">
+                    <canvas id="scene-canvas"></canvas>
+                    <div class="scene-controls">
+                        <button class="scene-control-btn active" onclick="setViewMode('shaded')">Shaded</button>
+                        <button class="scene-control-btn" onclick="setViewMode('wireframe')">Wireframe</button>
+                        <button class="scene-control-btn" onclick="setViewMode('textured')">Textured</button>
+                    </div>
+                    <div class="scene-stats" id="sceneStats">
+                        Tris: 1,234 | Verts: 2,456<br />
+                        FPS: 60 | Batches: 12
+                    </div>
+                    <div class="gizmo">
+                        <div class="gizmo-axis gizmo-x">X</div>
+                        <div class="gizmo-axis gizmo-y">Y</div>
+                        <div class="gizmo-axis gizmo-z">Z</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Window -->
+            <div class="panel project-window">
+                <div class="panel-header">
+                    <span>Project</span>
+                    <div style="display: flex; gap: 8px;">
+                        <span style="cursor: pointer;">🔍</span>
+                        <span style="cursor: pointer;">⚙</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="asset-grid" id="assetGrid">
+                        <!-- Assets will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inspector Panel -->
+        <div class="panel inspector">
+            <div class="panel-header">
+                <span>Inspector</span>
+                <span style="cursor: pointer;">⚙</span>
+            </div>
+            <div class="panel-content" id="inspectorContent">
+                <!-- Inspector components will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span>Ready</span>
+        <span>Nimbus Engine v1.0.0 - Build: 2024.3.1</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Nimbus Engine Core
+        class NimbusEngine {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.isPlaying = false;
+                this.selectedObject = null;
+                this.gameObjects = [];
+                this.assets = [];
+                this.currentTool = 'move';
+
+                this.init();
+                this.setupGUI();
+                this.createSampleScene();
+                this.animate();
+            }
+
+            init() {
+                const canvas = document.getElementById('scene-canvas');
+
+                // Three.js setup
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x2a2a2a);
+
+                this.camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+                this.camera.position.set(5, 5, 5);
+                this.camera.lookAt(0, 0, 0);
+
+                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                this.scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 10, 5);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 2048;
+                directionalLight.shadow.mapSize.height = 2048;
+                this.scene.add(directionalLight);
+
+                // Grid
+                const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+                this.scene.add(gridHelper);
+
+                // Controls
+                this.setupControls();
+
+                // Resize handler
+                window.addEventListener('resize', () => this.onWindowResize());
+                canvas.addEventListener('click', (e) => this.onCanvasClick(e));
+            }
+
+            setupControls() {
+                let isDragging = false;
+                let previousMousePosition = { x: 0, y: 0 };
+
+                const canvas = document.getElementById('scene-canvas');
+
+                canvas.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                });
+
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+
+                    const deltaMove = {
+                        x: e.clientX - previousMousePosition.x,
+                        y: e.clientY - previousMousePosition.y,
+                    };
+
+                    if (e.button === 0) {
+                        // Rotate camera around origin
+                        const spherical = new THREE.Spherical();
+                        spherical.setFromVector3(this.camera.position);
+                        spherical.theta -= deltaMove.x * 0.01;
+                        spherical.phi += deltaMove.y * 0.01;
+                        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+
+                        this.camera.position.setFromSpherical(spherical);
+                        this.camera.lookAt(0, 0, 0);
+                    }
+
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                });
+
+                canvas.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const distance = this.camera.position.length();
+                    const newDistance = distance + e.deltaY * 0.01;
+
+                    if (newDistance > 1 && newDistance < 50) {
+                        this.camera.position.normalize().multiplyScalar(newDistance);
+                    }
+                });
+            }
+
+            createSampleScene() {
+                // Sample GameObjects
+                const gameObjects = [
+                    { name: 'Main Camera', type: 'camera', icon: '📷', object: this.camera },
+                    { name: 'Directional Light', type: 'light', icon: '💡', object: null },
+                    { name: 'Cube', type: 'mesh', icon: '🟦', object: null },
+                    { name: 'Sphere', type: 'mesh', icon: '🔵', object: null },
+                    { name: 'Plane', type: 'mesh', icon: '⬜', object: null },
+                ];
+
+                // Create cube
+                const cubeGeometry = new THREE.BoxGeometry();
+                const cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+                const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                cube.position.set(0, 1, 0);
+                cube.castShadow = true;
+                cube.receiveShadow = true;
+                this.scene.add(cube);
+                gameObjects[2].object = cube;
+
+                // Create sphere
+                const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+                const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                sphere.position.set(2, 0.5, 0);
+                sphere.castShadow = true;
+                sphere.receiveShadow = true;
+                this.scene.add(sphere);
+                gameObjects[3].object = sphere;
+
+                // Create plane
+                const planeGeometry = new THREE.PlaneGeometry(10, 10);
+                const planeMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 });
+                const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+                plane.rotation.x = -Math.PI / 2;
+                plane.receiveShadow = true;
+                this.scene.add(plane);
+                gameObjects[4].object = plane;
+
+                this.gameObjects = gameObjects;
+
+                // Sample assets
+                this.assets = [
+                    { name: 'CubeMaterial', type: 'material', icon: '🎨' },
+                    { name: 'SphereScript', type: 'script', icon: '📜' },
+                    { name: 'MainScene', type: 'scene', icon: '🏞️' },
+                    { name: 'PlayerPrefab', type: 'prefab', icon: '👤' },
+                    { name: 'Texture01', type: 'texture', icon: '🖼️' },
+                    { name: 'AudioClip', type: 'audio', icon: '🔊' },
+                ];
+
+                this.updateHierarchy();
+                this.updateAssets();
+                this.selectObject(gameObjects[2]); // Select cube by default
+            }
+
+            setupGUI() {
+                // Initially empty - will be populated by sample scene
+            }
+
+            updateHierarchy() {
+                const hierarchyContent = document.getElementById('hierarchyContent');
+                hierarchyContent.innerHTML = '';
+
+                this.gameObjects.forEach((obj, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'hierarchy-item';
+                    item.onclick = () => this.selectObject(obj);
+
+                    item.innerHTML = `
+                        <div class="hierarchy-icon">${obj.icon}</div>
+                        <span>${obj.name}</span>
+                    `;
+
+                    hierarchyContent.appendChild(item);
+                });
+            }
+
+            updateAssets() {
+                const assetGrid = document.getElementById('assetGrid');
+                assetGrid.innerHTML = '';
+
+                this.assets.forEach((asset) => {
+                    const item = document.createElement('div');
+                    item.className = 'asset-item';
+
+                    item.innerHTML = `
+                        <div class="asset-icon">${asset.icon}</div>
+                        <div class="asset-name">${asset.name}</div>
+                    `;
+
+                    assetGrid.appendChild(item);
+                });
+            }
+
+            selectObject(obj) {
+                // Update hierarchy selection
+                document.querySelectorAll('.hierarchy-item').forEach((item, index) => {
+                    item.classList.toggle('selected', this.gameObjects[index] === obj);
+                });
+
+                this.selectedObject = obj;
+                this.updateInspector(obj);
+            }
+
+            updateInspector(obj) {
+                const inspectorContent = document.getElementById('inspectorContent');
+
+                if (!obj) {
+                    inspectorContent.innerHTML = '<div style="text-align: center; color: #666; margin-top: 50px;">Select an object to view its properties</div>';
+                    return;
+                }
+
+                let components = '';
+
+                // Transform component (always present)
+                let position = { x: 0, y: 0, z: 0 };
+                let rotation = { x: 0, y: 0, z: 0 };
+                let scale = { x: 1, y: 1, z: 1 };
+
+                if (obj.object && obj.object.position) {
+                    position = {
+                        x: obj.object.position.x.toFixed(2),
+                        y: obj.object.position.y.toFixed(2),
+                        z: obj.object.position.z.toFixed(2),
+                    };
+                }
+
+                if (obj.object && obj.object.rotation) {
+                    rotation = {
+                        x: ((obj.object.rotation.x * 180) / Math.PI).toFixed(1),
+                        y: ((obj.object.rotation.y * 180) / Math.PI).toFixed(1),
+                        z: ((obj.object.rotation.z * 180) / Math.PI).toFixed(1),
+                    };
+                }
+
+                if (obj.object && obj.object.scale) {
+                    scale = {
+                        x: obj.object.scale.x.toFixed(2),
+                        y: obj.object.scale.y.toFixed(2),
+                        z: obj.object.scale.z.toFixed(2),
+                    };
+                }
+
+                components += `
+                    <div class="component">
+                        <div class="component-header">
+                            <span>Transform</span>
+                            <span style="cursor: pointer;">⚙</span>
+                        </div>
+                        <div class="component-content">
+                            <div class="property">
+                                <div class="property-label">Position</div>
+                                <input type="number" class="property-input" value="${position.x}" style="width: 50px;" onchange="updateTransform('position', 'x', this.value)" />
+                                <input type="number" class="property-input" value="${position.y}" style="width: 50px;" onchange="updateTransform('position', 'y', this.value)" />
+                                <input type="number" class="property-input" value="${position.z}" style="width: 50px;" onchange="updateTransform('position', 'z', this.value)" />
+                            </div>
+                            <div class="property">
+                                <div class="property-label">Rotation</div>
+                                <input type="number" class="property-input" value="${rotation.x}" style="width: 50px;" onchange="updateTransform('rotation', 'x', this.value)" />
+                                <input type="number" class="property-input" value="${rotation.y}" style="width: 50px;" onchange="updateTransform('rotation', 'y', this.value)" />
+                                <input type="number" class="property-input" value="${rotation.z}" style="width: 50px;" onchange="updateTransform('rotation', 'z', this.value)" />
+                            </div>
+                            <div class="property">
+                                <div class="property-label">Scale</div>
+                                <input type="number" class="property-input" value="${scale.x}" style="width: 50px;" onchange="updateTransform('scale', 'x', this.value)" />
+                                <input type="number" class="property-input" value="${scale.y}" style="width: 50px;" onchange="updateTransform('scale', 'y', this.value)" />
+                                <input type="number" class="property-input" value="${scale.z}" style="width: 50px;" onchange="updateTransform('scale', 'z', this.value)" />
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Type-specific components
+                switch (obj.type) {
+                    case 'mesh':
+                        components += `
+                            <div class="component">
+                                <div class="component-header">
+                                    <span>Mesh Renderer</span>
+                                    <span style="cursor: pointer;">⚙</span>
+                                </div>
+                                <div class="component-content">
+                                    <div class="property">
+                                        <div class="property-label">Cast Shadows</div>
+                                        <input type="checkbox" checked />
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Receive Shadows</div>
+                                        <input type="checkbox" checked />
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Material</div>
+                                        <select class="property-input">
+                                            <option>Default Material</option>
+                                            <option>Lambert Material</option>
+                                            <option>Standard Material</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="component">
+                                <div class="component-header">
+                                    <span>Box Collider</span>
+                                    <span style="cursor: pointer;">⚙</span>
+                                </div>
+                                <div class="component-content">
+                                    <div class="property">
+                                        <div class="property-label">Is Trigger</div>
+                                        <input type="checkbox" />
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Size</div>
+                                        <input type="number" class="property-input" value="1" style="width: 50px;" />
+                                        <input type="number" class="property-input" value="1" style="width: 50px;" />
+                                        <input type="number" class="property-input" value="1" style="width: 50px;" />
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'camera':
+                        components += `
+                            <div class="component">
+                                <div class="component-header">
+                                    <span>Camera</span>
+                                    <span style="cursor: pointer;">⚙</span>
+                                </div>
+                                <div class="component-content">
+                                    <div class="property">
+                                        <div class="property-label">Projection</div>
+                                        <select class="property-input">
+                                            <option>Perspective</option>
+                                            <option>Orthographic</option>
+                                        </select>
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Field of View</div>
+                                        <input type="range" class="property-input" min="10" max="179" value="75" />
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Near</div>
+                                        <input type="number" class="property-input" value="0.1" step="0.1" />
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Far</div>
+                                        <input type="number" class="property-input" value="1000" />
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'light':
+                        components += `
+                            <div class="component">
+                                <div class="component-header">
+                                    <span>Light</span>
+                                    <span style="cursor: pointer;">⚙</span>
+                                </div>
+                                <div class="component-content">
+                                    <div class="property">
+                                        <div class="property-label">Type</div>
+                                        <select class="property-input">
+                                            <option>Directional</option>
+                                            <option>Point</option>
+                                            <option>Spot</option>
+                                        </select>
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Color</div>
+                                        <input type="color" class="property-input" value="#ffffff" />
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Intensity</div>
+                                        <input type="range" class="property-input" min="0" max="10" value="8" step="0.1" />
+                                    </div>
+                                    <div class="property">
+                                        <div class="property-label">Shadows</div>
+                                        <select class="property-input">
+                                            <option>Hard Shadows</option>
+                                            <option>Soft Shadows</option>
+                                            <option>No Shadows</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+
+                inspectorContent.innerHTML = components;
+            }
+
+            onWindowResize() {
+                const canvas = document.getElementById('scene-canvas');
+                this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            }
+
+            onCanvasClick(event) {
+                // Ray casting for object selection (simplified)
+                const rect = event.target.getBoundingClientRect();
+                const mouse = new THREE.Vector2();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, this.camera);
+
+                const meshObjects = this.gameObjects
+                    .filter((obj) => obj.type === 'mesh' && obj.object)
+                    .map((obj) => obj.object);
+
+                const intersects = raycaster.intersectObjects(meshObjects);
+
+                if (intersects.length > 0) {
+                    const clickedObject = this.gameObjects.find((obj) => obj.object === intersects[0].object);
+                    if (clickedObject) {
+                        this.selectObject(clickedObject);
+                    }
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                // Animate objects when playing
+                if (this.isPlaying) {
+                    const cube = this.gameObjects.find((obj) => obj.name === 'Cube');
+                    if (cube && cube.object) {
+                        cube.object.rotation.x += 0.01;
+                        cube.object.rotation.y += 0.01;
+                    }
+
+                    const sphere = this.gameObjects.find((obj) => obj.name === 'Sphere');
+                    if (sphere && sphere.object) {
+                        sphere.object.position.y = 0.5 + Math.sin(Date.now() * 0.003) * 0.5;
+                    }
+                }
+
+                this.renderer.render(this.scene, this.camera);
+
+                // Update stats
+                const stats = document.getElementById('sceneStats');
+                if (stats) {
+                    const triangles = this.renderer.info.render.triangles;
+                    const calls = this.renderer.info.render.calls;
+                    stats.innerHTML = `Tris: ${triangles.toLocaleString()} | Verts: ${(triangles * 1.5).toFixed(0)}<br>FPS: 60 | Batches: ${calls}`;
+                }
+            }
+        }
+
+        // Global functions for UI interaction
+        let engine;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            engine = new NimbusEngine();
+        });
+
+        function togglePlay() {
+            const playBtn = document.getElementById('playBtn');
+            engine.isPlaying = !engine.isPlaying;
+
+            if (engine.isPlaying) {
+                playBtn.innerHTML = '⏹';
+                playBtn.classList.add('playing');
+            } else {
+                playBtn.innerHTML = '▶';
+                playBtn.classList.remove('playing');
+            }
+        }
+
+        function pauseGame() {
+            engine.isPlaying = false;
+            const playBtn = document.getElementById('playBtn');
+            playBtn.innerHTML = '▶';
+            playBtn.classList.remove('playing');
+        }
+
+        function stepFrame() {
+            // Single frame step logic would go here
+            console.log('Step frame');
+        }
+
+        function setTool(tool) {
+            engine.currentTool = tool;
+
+            // Update tool buttons
+            document.querySelectorAll('.tool-button').forEach((btn, index) => {
+                if (index < 4) {
+                    btn.classList.remove('active');
+                }
+            });
+
+            event.target.classList.add('active');
+        }
+
+        function togglePivot() {
+            console.log('Toggle pivot mode');
+        }
+
+        function toggleSnap() {
+            console.log('Toggle snap');
+        }
+
+        function setViewMode(mode) {
+            // Update scene controls
+            document.querySelectorAll('.scene-control-btn').forEach((btn) => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Apply view mode
+            switch (mode) {
+                case 'wireframe':
+                    engine.scene.traverse((obj) => {
+                        if (obj.material) {
+                            obj.material.wireframe = true;
+                        }
+                    });
+                    break;
+                case 'shaded':
+                    engine.scene.traverse((obj) => {
+                        if (obj.material) {
+                            obj.material.wireframe = false;
+                        }
+                    });
+                    break;
+                case 'textured':
+                    // Textured mode implementation
+                    break;
+            }
+        }
+
+        function updateTransform(property, axis, value) {
+            if (!engine.selectedObject || !engine.selectedObject.object) return;
+
+            const obj = engine.selectedObject.object;
+            const numValue = parseFloat(value);
+
+            switch (property) {
+                case 'position':
+                    obj.position[axis] = numValue;
+                    break;
+                case 'rotation':
+                    obj.rotation[axis] = (numValue * Math.PI) / 180; // Convert to radians
+                    break;
+                case 'scale':
+                    obj.scale[axis] = numValue;
+                    break;
+            }
+        }
+
+        // Console API for advanced users
+        window.Nimbus = {
+            createCube: (name, position) => {
+                console.log('Creating cube:', name, position);
+            },
+            deleteObject: (name) => {
+                console.log('Deleting object:', name);
+            },
+            loadScene: (sceneName) => {
+                console.log('Loading scene:', sceneName);
+            },
+            exportProject: () => {
+                console.log('Exporting project...');
+                alert('Export functionality would generate cross-platform builds here!');
+            },
+        };
+    </script>
+</body>
+</html>
